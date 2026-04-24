@@ -1,14 +1,343 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>手语大闯关</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url('./assets/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    /* 标题样式 - 无边框 */
+    .title {
+      text-align: center;
+      font-size: 48px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+    }
+
+    /* 主内容区域 */
+    .main-content {
+      display: flex;
+      gap: 30px;
+      flex: 1;
+    }
+
+    /* 毛玻璃效果 */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 左侧关卡列表 */
+    .level-list {
+      width: 320px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .level-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .level-item:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(5px);
+    }
+
+    .level-item.active {
+      background: rgba(255, 255, 255, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .level-item.locked {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .level-item.locked:hover {
+      transform: none;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .level-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .level-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .level-btn.learned {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: #fff;
+    }
+
+    .level-btn.not-learned {
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .level-btn.not-learned:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .level-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* 右侧视频播放区 */
+    .video-container {
+      flex: 1;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-title {
+      font-size: 24px;
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-player {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .video-player video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .play-icon {
+      width: 80px;
+      height: 80px;
+      border: 3px solid rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .play-icon::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 25px solid rgba(255, 255, 255, 0.7);
+      border-top: 15px solid transparent;
+      border-bottom: 15px solid transparent;
+      margin-left: 8px;
+    }
+  </style>
 </head>
 
 <body>
+  <!-- 标题 -->
+  <h1 class="title">手语大闯关</h1>
 
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 左侧关卡列表 -->
+    <div class="level-list glass-panel">
+      <div class="level-item" data-level="1" data-video="assets/01-帮助.mp4">
+        <span class="level-name">手语第一关</span>
+        <button class="level-btn learned" onclick="markLearned(1, event)">学习了</button>
+      </div>
+      <div class="level-item locked" data-level="2" data-video="assets/02-你.mp4">
+        <span class="level-name">手语第二关</span>
+        <button class="level-btn not-learned" onclick="markLearned(2, event)" disabled>未学习</button>
+      </div>
+      <div class="level-item locked" data-level="3" data-video="assets/03-好.mp4">
+        <span class="level-name">手语第三关</span>
+        <button class="level-btn not-learned" onclick="markLearned(3, event)" disabled>未学习</button>
+      </div>
+      <div class="level-item locked" data-level="4" data-video="assets/04-报警.mp4">
+        <span class="level-name">手语第四关</span>
+        <button class="level-btn not-learned" onclick="markLearned(4, event)" disabled>未学习</button>
+      </div>
+    </div>
+
+    <!-- 右侧视频播放区 -->
+    <div class="video-container glass-panel">
+      <h2 class="video-title" id="videoTitle">请选择一个关卡开始学习</h2>
+      <div class="video-player" id="videoPlayer">
+        <div class="video-placeholder" id="placeholder">
+          <div class="play-icon"></div>
+          <p>点击左侧关卡播放视频</p>
+        </div>
+        <video id="video" controls style="display: none;"></video>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 视频名称映射
+    const videoNames = {
+      1: '帮助',
+      2: '你',
+      3: '好',
+      4: '报警'
+    };
+
+    // 从 localStorage 加载学习进度
+    function loadProgress() {
+      const saved = localStorage.getItem('signLanguageProgress');
+      return saved ? JSON.parse(saved) : { 1: true, 2: false, 3: false, 4: false };
+    }
+
+    // 保存学习进度到 localStorage
+    function saveProgress(progress) {
+      localStorage.setItem('signLanguageProgress', JSON.stringify(progress));
+    }
+
+    // 初始化页面状态
+    function initPage() {
+      const progress = loadProgress();
+      const levelItems = document.querySelectorAll('.level-item');
+
+      levelItems.forEach((item, index) => {
+        const level = index + 1;
+        const btn = item.querySelector('.level-btn');
+
+        // 更新按钮状态
+        if (progress[level]) {
+          btn.textContent = '学习了';
+          btn.classList.remove('not-learned');
+          btn.classList.add('learned');
+          item.classList.remove('locked');
+          btn.disabled = false;
+        }
+
+        // 检查是否可以解锁（前一关已学习）
+        if (level > 1 && progress[level - 1] && !progress[level]) {
+          item.classList.remove('locked');
+          btn.disabled = false;
+        }
+
+        // 添加点击事件播放视频
+        item.addEventListener('click', function(e) {
+          if (e.target.tagName === 'BUTTON') return;
+          if (item.classList.contains('locked')) {
+            alert('请先完成前面的关卡！');
+            return;
+          }
+          playVideo(level, item.dataset.video);
+        });
+      });
+    }
+
+    // 标记为已学习
+    function markLearned(level, event) {
+      event.stopPropagation();
+      const progress = loadProgress();
+      
+      // 检查前一关是否已完成
+      if (level > 1 && !progress[level - 1]) {
+        alert('请先完成前面的关卡！');
+        return;
+      }
+
+      progress[level] = true;
+      saveProgress(progress);
+
+      // 更新当前按钮状态
+      const btn = event.target;
+      btn.textContent = '学习了';
+      btn.classList.remove('not-learned');
+      btn.classList.add('learned');
+
+      // 解锁下一关
+      if (level < 4) {
+        const nextItem = document.querySelector(`[data-level="${level + 1}"]`);
+        const nextBtn = nextItem.querySelector('.level-btn');
+        nextItem.classList.remove('locked');
+        nextBtn.disabled = false;
+      }
+    }
+
+    // 播放视频
+    function playVideo(level, videoSrc) {
+      const video = document.getElementById('video');
+      const placeholder = document.getElementById('placeholder');
+      const videoTitle = document.getElementById('videoTitle');
+
+      // 更新标题
+      videoTitle.textContent = `正在学习：${videoNames[level]}`;
+
+      // 隐藏占位符，显示视频
+      placeholder.style.display = 'none';
+      video.style.display = 'block';
+      video.src = videoSrc;
+      video.play();
+
+      // 更新选中状态
+      document.querySelectorAll('.level-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      document.querySelector(`[data-level="${level}"]`).classList.add('active');
+    }
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
 </body>
 
 </html>
