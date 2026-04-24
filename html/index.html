@@ -13,14 +13,15 @@
     }
 
     body {
-      min-height: 100vh;
-      background: url('./assets/bg.jpg') no-repeat center center fixed;
+      min-height: 600px;
+      min-width: 1200px;
+      height: 100vh;
+      background: url('./assets/bg.jpg') no-repeat center center;
       background-size: cover;
       font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
-      padding: 40px;
+      padding: 70px 110px 80px;
       display: flex;
       flex-direction: column;
-      gap: 30px;
     }
 
     /* 标题样式 - 无边框 */
@@ -45,8 +46,8 @@
     /* 毛玻璃效果 */
     .glass-panel {
       background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -156,7 +157,7 @@
 
     .video-player {
       flex: 1;
-      min-height: 0;
+      flex-shrink: 0;
       background: rgba(0, 0, 0, 0.05);
       border-radius: 15px;
       overflow: hidden;
@@ -224,18 +225,17 @@
     /* 弹窗内容 - 毛玻璃效果 */
     .modal-content {
       background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.5);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      padding: 40px;
+      padding: 60px 120px;
       text-align: center;
-      max-width: 400px;
     }
 
     .modal-content img {
-      max-width: 200px;
+      max-width: 300px;
       margin-bottom: 30px;
     }
 
@@ -365,7 +365,7 @@
       levelItems.forEach((item, index) => {
         const level = index + 1;
         const state = progress[level];
-        
+
         // 清除现有按钮/文字
         const existingBtn = item.querySelector('.level-btn');
         const existingText = item.querySelector('.not-learned-text');
@@ -398,7 +398,7 @@
         }
 
         // 添加点击事件播放视频
-        item.onclick = function(e) {
+        item.onclick = function (e) {
           if (e.target.tagName === 'BUTTON') return;
           if (item.classList.contains('locked')) {
             alert('请先完成前面的关卡！');
@@ -413,7 +413,7 @@
     function markLearned(level, event) {
       event.stopPropagation();
       const progress = loadProgress();
-      
+
       // 只有状态为0时才能点击
       if (progress[level] !== 0) {
         return;
@@ -421,18 +421,18 @@
 
       // 更新当前关卡为已学习
       progress[level] = 1;
-      
+
       // 解锁下一关（设为0）
       if (level < 4) {
         progress[level + 1] = 0;
       }
-      
+
       saveProgress(progress);
       updateAllLevels(progress);
-      
+
       // 记录当前关卡用于弹窗
       currentLevel = level;
-      
+
       // 显示弹窗
       showModal(level);
     }
@@ -441,14 +441,14 @@
     function showModal(level) {
       const modal = document.getElementById('modal');
       const nextBtn = document.getElementById('nextLevelBtn');
-      
+
       // 如果是最后一关，隐藏下一关按钮
       if (level >= 4) {
         nextBtn.style.display = 'none';
       } else {
         nextBtn.style.display = 'flex';
       }
-      
+
       modal.classList.add('show');
     }
 
@@ -461,7 +461,7 @@
     // 前往下一关
     function goToNextLevel() {
       closeModal();
-      
+
       if (currentLevel < 4) {
         const nextLevel = currentLevel + 1;
         const nextItem = document.querySelector(`[data-level="${nextLevel}"]`);
@@ -489,7 +489,7 @@
         item.classList.remove('active');
       });
       document.querySelector(`[data-level="${level}"]`).classList.add('active');
-      
+
       // 更新当前关卡
       currentLevel = level;
     }
