@@ -146,13 +146,38 @@
       overflow: hidden;
     }
 
+    .video-title-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .reset-btn {
+      height: 34px;
+      border-radius: 34px;
+      padding: 0 18px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+      color: rgb(51, 54, 57);
+      background-color: rgba(46, 51, 56, 0.05);
+    }
+
+    .reset-btn:hover {
+      opacity: 0.7;
+    }
+
     .video-title {
       font-size: 20px;
       color: #18a058;
-      margin-bottom: 15px;
       text-align: right;
       padding-right: 10px;
-      flex-shrink: 0;
     }
 
     .video-player {
@@ -275,6 +300,13 @@
     .modal-btn.close:hover {
       background-color: rgba(0, 0, 0, 0.15);
     }
+
+    /* 确认弹窗文字 */
+    .confirm-text {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 30px;
+    }
   </style>
 </head>
 
@@ -306,7 +338,10 @@
 
     <!-- 右侧视频播放区 -->
     <div class="video-container glass-panel">
-      <h2 class="video-title" id="videoTitle">请选择一个关卡开始学习</h2>
+      <div class="video-title-area">
+        <button class="reset-btn" onclick="showResetConfirm()">重置进度</button>
+        <h2 class="video-title" id="videoTitle">请选择一个关卡开始学习</h2>
+      </div>
       <div class="video-player" id="videoPlayer">
         <div class="video-placeholder" id="placeholder">
           <div class="play-icon"></div>
@@ -317,13 +352,24 @@
     </div>
   </div>
 
-  <!-- 弹窗 -->
+  <!-- 学习完成弹窗 -->
   <div class="modal-overlay" id="modal">
     <div class="modal-content">
       <img src="assets/你真棒.gif" alt="你真棒">
       <div class="modal-buttons">
         <button class="modal-btn next" id="nextLevelBtn" onclick="goToNextLevel()">下一关</button>
         <button class="modal-btn close" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重置确认弹窗 -->
+  <div class="modal-overlay" id="resetModal">
+    <div class="modal-content">
+      <p class="confirm-text">确定要重置所有学习进度吗？</p>
+      <div class="modal-buttons">
+        <button class="modal-btn next" onclick="confirmReset()">确定</button>
+        <button class="modal-btn close" onclick="closeResetModal()">取消</button>
       </div>
     </div>
   </div>
@@ -492,6 +538,48 @@
 
       // 更新当前关卡
       currentLevel = level;
+    }
+
+    // 显示重置确认弹窗
+    function showResetConfirm() {
+      const resetModal = document.getElementById('resetModal');
+      resetModal.classList.add('show');
+    }
+
+    // 关闭重置确认弹窗
+    function closeResetModal() {
+      const resetModal = document.getElementById('resetModal');
+      resetModal.classList.remove('show');
+    }
+
+    // 确认重置进度
+    function confirmReset() {
+      // 重置进度到默认值
+      const defaultProgress = { 1: 0, 2: -1, 3: -1, 4: -1 };
+      saveProgress(defaultProgress);
+      updateAllLevels(defaultProgress);
+
+      // 清除正在播放的视频
+      const video = document.getElementById('video');
+      const placeholder = document.getElementById('placeholder');
+      const videoTitle = document.getElementById('videoTitle');
+
+      video.pause();
+      video.src = '';
+      video.style.display = 'none';
+      placeholder.style.display = 'flex';
+      videoTitle.textContent = '请选择一个关卡开始学习';
+
+      // 清除选中状态
+      document.querySelectorAll('.level-item').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      // 重置当前关卡
+      currentLevel = 0;
+
+      // 关闭弹窗
+      closeResetModal();
     }
 
     // 页面加载时初始化
