@@ -36,12 +36,16 @@ import mediapipe as mp
 
 
 DEFAULT_THUMB_DIST_THRESHOLD = 0.35
+DEFAULT_INDEX_DIST_THRESHOLD = 0.25
+DEFAULT_MIDDLE_DIST_THRESHOLD = 0.25
+DEFAULT_RING_DIST_THRESHOLD = 0.25
+DEFAULT_PINKY_DIST_THRESHOLD = 0.25
 DEFAULT_FINGER_DIST_THRESHOLD = 0.25
 THRESHOLD_MIN = 0.00
 THRESHOLD_MAX = 2.00
 THRESHOLD_STEP = 0.01
 THUMB_OPERATORS = ("<", "<=", "=", ">=", ">")
-DEFAULT_THUMB_OPERATOR = "="
+DEFAULT_THUMB_OPERATOR = "<="
 EQUAL_DISTANCE_TOLERANCE = 0.005
 
 mp_hands = mp.solutions.hands
@@ -62,6 +66,14 @@ def read_thresholds(thresholds, threshold_lock):
             thresholds["thumb"],
             thresholds["finger"],
             thresholds["thumb_operator"],
+            thresholds["index"],
+            thresholds["index_operator"],
+            thresholds["middle"],
+            thresholds["middle_operator"],
+            thresholds["ring"],
+            thresholds["ring_operator"],
+            thresholds["pinky"],
+            thresholds["pinky_operator"],
         )
 
 
@@ -79,8 +91,76 @@ def compare_thumb_distance(thumb_dist, operator, thumb_dist_threshold):
     return False
 
 
+def compare_index_distance(index_dist, operator, index_dist_threshold):
+    if operator == "<":
+        return index_dist < index_dist_threshold
+    if operator == "<=":
+        return index_dist <= index_dist_threshold
+    if operator == "=":
+        return abs(index_dist - index_dist_threshold) <= EQUAL_DISTANCE_TOLERANCE
+    if operator == ">=":
+        return index_dist >= index_dist_threshold
+    if operator == ">":
+        return index_dist > index_dist_threshold
+    return False
+
+
+def compare_middle_distance(middle_dist, operator, middle_dist_threshold):
+    if operator == "<":
+        return middle_dist < middle_dist_threshold
+    if operator == "<=":
+        return middle_dist <= middle_dist_threshold
+    if operator == "=":
+        return abs(middle_dist - middle_dist_threshold) <= EQUAL_DISTANCE_TOLERANCE
+    if operator == ">=":
+        return middle_dist >= middle_dist_threshold
+    if operator == ">":
+        return middle_dist > middle_dist_threshold
+    return False
+
+
+def compare_ring_distance(ring_dist, operator, ring_dist_threshold):
+    if operator == "<":
+        return ring_dist < ring_dist_threshold
+    if operator == "<=":
+        return ring_dist <= ring_dist_threshold
+    if operator == "=":
+        return abs(ring_dist - ring_dist_threshold) <= EQUAL_DISTANCE_TOLERANCE
+    if operator == ">=":
+        return ring_dist >= ring_dist_threshold
+    if operator == ">":
+        return ring_dist > ring_dist_threshold
+    return False
+
+
+def compare_pinky_distance(pinky_dist, operator, pinky_dist_threshold):
+    if operator == "<":
+        return pinky_dist < pinky_dist_threshold
+    if operator == "<=":
+        return pinky_dist <= pinky_dist_threshold
+    if operator == "=":
+        return abs(pinky_dist - pinky_dist_threshold) <= EQUAL_DISTANCE_TOLERANCE
+    if operator == ">=":
+        return pinky_dist >= pinky_dist_threshold
+    if operator == ">":
+        return pinky_dist > pinky_dist_threshold
+    return False
+
+
 def detect_good_gesture(landmarks, thresholds):
-    thumb_dist_threshold, finger_dist_threshold, thumb_operator = thresholds
+    (
+        thumb_dist_threshold,
+        finger_dist_threshold,
+        thumb_operator,
+        index_dist_threshold,
+        index_operator,
+        middle_dist_threshold,
+        middle_operator,
+        ring_dist_threshold,
+        ring_operator,
+        pinky_dist_threshold,
+        pinky_operator,
+    ) = thresholds
 
     wrist = landmarks[0]
     thumb_tip = landmarks[4]
@@ -92,17 +172,19 @@ def detect_good_gesture(landmarks, thresholds):
     # 计算拇指尖到手腕的距离
     thumb_dist = distance(thumb_tip, wrist)
 
-    # 计算四指指尖到手腕的距离，取最大值
+    # 计算四指指尖到手腕的距离
     index_dist = distance(index_tip, wrist)
     middle_dist = distance(middle_tip, wrist)
     ring_dist = distance(ring_tip, wrist)
     pinky_dist = distance(pinky_tip, wrist)
-    max_finger_dist = max(index_dist, middle_dist, ring_dist, pinky_dist)
 
-    # 判断条件：4号点到0号点的距离满足下拉框条件 AND 四指收得近
+    # 判断条件：5个手指的距离都满足各自的阈值条件
     if (
         compare_thumb_distance(thumb_dist, thumb_operator, thumb_dist_threshold)
-        # and max_finger_dist < finger_dist_threshold
+        and compare_index_distance(index_dist, index_operator, index_dist_threshold)
+        and compare_middle_distance(middle_dist, middle_operator, middle_dist_threshold)
+        and compare_ring_distance(ring_dist, ring_operator, ring_dist_threshold)
+        and compare_pinky_distance(pinky_dist, pinky_operator, pinky_dist_threshold)
     ):
         return "GOOD"
     return "UNKNOWN"
@@ -140,6 +222,14 @@ def draw_measurements(
     thumb_threshold,
     thumb_operator,
     finger_threshold,
+    index_threshold,
+    index_operator,
+    middle_threshold,
+    middle_operator,
+    ring_threshold,
+    ring_operator,
+    pinky_threshold,
+    pinky_operator,
 ):
     wrist = hand_landmarks.landmark[0]
     thumb_tip = hand_landmarks.landmark[4]
@@ -176,15 +266,15 @@ def draw_measurements(
     # )
 
     # 显示当前设定的阈值（黄色）
-    cv2.putText(
-        img,
-        f"[Your Setting] 4-0 Distance {thumb_operator} {thumb_threshold:.3f}",
-        (50, 250),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (0, 255, 255),
-        1,
-    )
+    # cv2.putText(
+    #     img,
+    #     f"[Your Setting] 4-0 Distance {thumb_operator} {thumb_threshold:.3f}",
+    #     (50, 250),
+    #     cv2.FONT_HERSHEY_SIMPLEX,
+    #     0.5,
+    #     (0, 255, 255),
+    #     1,
+    # )
     # cv2.putText(
     #     img,
     #     f"[Your Setting] Finger Threshold = {finger_threshold:.3f}",
@@ -201,6 +291,46 @@ def draw_measurements(
             img,
             f"TIP: Try 4-0 distance = {thumb_dist:.3f}",
             (50, 310),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_index_distance(index_dist, index_operator, index_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 8-0 distance = {index_dist:.3f}",
+            (50, 335),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_middle_distance(middle_dist, middle_operator, middle_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 12-0 distance = {middle_dist:.3f}",
+            (50, 360),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_ring_distance(ring_dist, ring_operator, ring_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 16-0 distance = {ring_dist:.3f}",
+            (50, 385),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_pinky_distance(pinky_dist, pinky_operator, pinky_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 20-0 distance = {pinky_dist:.3f}",
+            (50, 410),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.45,
             (0, 0, 255),
@@ -279,7 +409,19 @@ def run_recognition(thresholds, threshold_lock, stop_event, messages):
             if not success:
                 raise RuntimeError("无法读取摄像头画面。")
 
-            thumb_threshold, finger_threshold, thumb_operator = read_thresholds(
+            (
+                thumb_threshold,
+                finger_threshold,
+                thumb_operator,
+                index_threshold,
+                index_operator,
+                middle_threshold,
+                middle_operator,
+                ring_threshold,
+                ring_operator,
+                pinky_threshold,
+                pinky_operator,
+            ) = read_thresholds(
                 thresholds,
                 threshold_lock,
             )
@@ -287,6 +429,14 @@ def run_recognition(thresholds, threshold_lock, stop_event, messages):
                 thumb_threshold,
                 finger_threshold,
                 thumb_operator,
+                index_threshold,
+                index_operator,
+                middle_threshold,
+                middle_operator,
+                ring_threshold,
+                ring_operator,
+                pinky_threshold,
+                pinky_operator,
             )
 
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -303,6 +453,14 @@ def run_recognition(thresholds, threshold_lock, stop_event, messages):
                         thumb_threshold,
                         thumb_operator,
                         finger_threshold,
+                        index_threshold,
+                        index_operator,
+                        middle_threshold,
+                        middle_operator,
+                        ring_threshold,
+                        ring_operator,
+                        pinky_threshold,
+                        pinky_operator,
                     )
                     result = detect_good_gesture(
                         hand_landmarks.landmark,
@@ -354,10 +512,19 @@ def create_control_window(thresholds, threshold_lock, stop_event, messages):
 
     thumb_var = tk.StringVar(value=format_threshold(DEFAULT_THUMB_DIST_THRESHOLD))
     thumb_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
-    status_var = tk.StringVar(value="调整数值后点击“确定”，识别窗口会立即使用新阈值。")
+    index_var = tk.StringVar(value=format_threshold(DEFAULT_INDEX_DIST_THRESHOLD))
+    index_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
+    middle_var = tk.StringVar(value=format_threshold(DEFAULT_MIDDLE_DIST_THRESHOLD))
+    middle_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
+    ring_var = tk.StringVar(value=format_threshold(DEFAULT_RING_DIST_THRESHOLD))
+    ring_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
+    pinky_var = tk.StringVar(value=format_threshold(DEFAULT_PINKY_DIST_THRESHOLD))
+    pinky_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
+    status_var = tk.StringVar(value='调整数值后点击"确定"，识别窗口会立即使用新阈值。')
     window_closed = {"value": False}
 
-    ttk.Label(frame, text="4号点到0号点的距离").grid(
+    # 拇指4号点到0号点的距离（拇指）
+    ttk.Label(frame, text="拇指4号点到0号点的距离").grid(
         row=0,
         column=0,
         sticky="w",
@@ -390,7 +557,141 @@ def create_control_window(thresholds, threshold_lock, stop_event, messages):
     )
     thumb_spinbox.grid(row=0, column=2, sticky="ew", pady=(0, 10))
 
-    # 四指阈值输入框暂时不显示，仍使用默认 0.25 参与识别判断。
+    # 食指8号点到0号点的距离（食指）
+    ttk.Label(frame, text="食指8号点到0号点的距离").grid(
+        row=1,
+        column=0,
+        sticky="w",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    index_operator_combobox = ttk.Combobox(
+        frame,
+        textvariable=index_operator_var,
+        values=THUMB_OPERATORS,
+        width=4,
+        state="readonly",
+    )
+    index_operator_combobox.grid(
+        row=1,
+        column=1,
+        sticky="ew",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    index_spinbox = tk.Spinbox(
+        frame,
+        from_=THRESHOLD_MIN,
+        to=THRESHOLD_MAX,
+        increment=THRESHOLD_STEP,
+        format="%.2f",
+        textvariable=index_var,
+        width=8,
+        justify="right",
+    )
+    index_spinbox.grid(row=1, column=2, sticky="ew", pady=(0, 10))
+
+    # 中指12号点到0号点的距离（中指）
+    ttk.Label(frame, text="中指12号点到0号点的距离").grid(
+        row=2,
+        column=0,
+        sticky="w",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    middle_operator_combobox = ttk.Combobox(
+        frame,
+        textvariable=middle_operator_var,
+        values=THUMB_OPERATORS,
+        width=4,
+        state="readonly",
+    )
+    middle_operator_combobox.grid(
+        row=2,
+        column=1,
+        sticky="ew",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    middle_spinbox = tk.Spinbox(
+        frame,
+        from_=THRESHOLD_MIN,
+        to=THRESHOLD_MAX,
+        increment=THRESHOLD_STEP,
+        format="%.2f",
+        textvariable=middle_var,
+        width=8,
+        justify="right",
+    )
+    middle_spinbox.grid(row=2, column=2, sticky="ew", pady=(0, 10))
+
+    # 无名指16号点到0号点的距离（无名指）
+    ttk.Label(frame, text="无名指16号点到0号点的距离").grid(
+        row=3,
+        column=0,
+        sticky="w",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    ring_operator_combobox = ttk.Combobox(
+        frame,
+        textvariable=ring_operator_var,
+        values=THUMB_OPERATORS,
+        width=4,
+        state="readonly",
+    )
+    ring_operator_combobox.grid(
+        row=3,
+        column=1,
+        sticky="ew",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    ring_spinbox = tk.Spinbox(
+        frame,
+        from_=THRESHOLD_MIN,
+        to=THRESHOLD_MAX,
+        increment=THRESHOLD_STEP,
+        format="%.2f",
+        textvariable=ring_var,
+        width=8,
+        justify="right",
+    )
+    ring_spinbox.grid(row=3, column=2, sticky="ew", pady=(0, 10))
+
+    # 小指20号点到0号点的距离（小指）
+    ttk.Label(frame, text="小指20号点到0号点的距离").grid(
+        row=4,
+        column=0,
+        sticky="w",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    pinky_operator_combobox = ttk.Combobox(
+        frame,
+        textvariable=pinky_operator_var,
+        values=THUMB_OPERATORS,
+        width=4,
+        state="readonly",
+    )
+    pinky_operator_combobox.grid(
+        row=4,
+        column=1,
+        sticky="ew",
+        padx=(0, 12),
+        pady=(0, 10),
+    )
+    pinky_spinbox = tk.Spinbox(
+        frame,
+        from_=THRESHOLD_MIN,
+        to=THRESHOLD_MAX,
+        increment=THRESHOLD_STEP,
+        format="%.2f",
+        textvariable=pinky_var,
+        width=8,
+        justify="right",
+    )
+    pinky_spinbox.grid(row=4, column=2, sticky="ew", pady=(0, 10))
 
     def parse_threshold(value, label):
         try:
@@ -405,30 +706,56 @@ def create_control_window(thresholds, threshold_lock, stop_event, messages):
 
     def apply_thresholds():
         try:
-            thumb_value = parse_threshold(thumb_var.get(), "4号点到0号点的距离")
+            thumb_value = parse_threshold(thumb_var.get(), "拇指4号点到0号点的距离")
+            index_value = parse_threshold(index_var.get(), "食指8号点到0号点的距离")
+            middle_value = parse_threshold(middle_var.get(), "中指12号点到0号点的距离")
+            ring_value = parse_threshold(ring_var.get(), "无名指16号点到0号点的距离")
+            pinky_value = parse_threshold(pinky_var.get(), "小指20号点到0号点的距离")
         except ValueError as exc:
             messagebox.showerror("输入错误", str(exc), parent=root)
             return
 
         thumb_operator = thumb_operator_var.get()
-        if thumb_operator not in THUMB_OPERATORS:
-            messagebox.showerror("输入错误", "请选择有效的判断符号。", parent=root)
-            return
+        index_operator = index_operator_var.get()
+        middle_operator = middle_operator_var.get()
+        ring_operator = ring_operator_var.get()
+        pinky_operator = pinky_operator_var.get()
+
+        for op, name in [
+            (thumb_operator, "4号点"),
+            (index_operator, "8号点"),
+            (middle_operator, "12号点"),
+            (ring_operator, "16号点"),
+            (pinky_operator, "20号点"),
+        ]:
+            if op not in THUMB_OPERATORS:
+                messagebox.showerror("输入错误", f"请为{name}选择有效的判断符号。", parent=root)
+                return
 
         with threshold_lock:
             thresholds["thumb"] = thumb_value
             thresholds["thumb_operator"] = thumb_operator
+            thresholds["index"] = index_value
+            thresholds["index_operator"] = index_operator
+            thresholds["middle"] = middle_value
+            thresholds["middle_operator"] = middle_operator
+            thresholds["ring"] = ring_value
+            thresholds["ring_operator"] = ring_operator
+            thresholds["pinky"] = pinky_value
+            thresholds["pinky_operator"] = pinky_operator
 
         thumb_var.set(format_threshold(thumb_value))
-        status_var.set(
-            f"已应用：4号点到0号点的距离 {thumb_operator} {thumb_value:.2f}"
-        )
+        index_var.set(format_threshold(index_value))
+        middle_var.set(format_threshold(middle_value))
+        ring_var.set(format_threshold(ring_value))
+        pinky_var.set(format_threshold(pinky_value))
+        status_var.set("已应用所有阈值设置")
 
     ok_button = ttk.Button(frame, text="确定", command=apply_thresholds)
-    ok_button.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(4, 10))
+    ok_button.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(4, 10))
 
     ttk.Label(frame, textvariable=status_var, foreground="#555555").grid(
-        row=2,
+        row=6,
         column=0,
         columnspan=3,
         sticky="w",
@@ -470,6 +797,14 @@ def main():
         "thumb": DEFAULT_THUMB_DIST_THRESHOLD,
         "finger": DEFAULT_FINGER_DIST_THRESHOLD,
         "thumb_operator": DEFAULT_THUMB_OPERATOR,
+        "index": DEFAULT_INDEX_DIST_THRESHOLD,
+        "index_operator": DEFAULT_THUMB_OPERATOR,
+        "middle": DEFAULT_MIDDLE_DIST_THRESHOLD,
+        "middle_operator": DEFAULT_THUMB_OPERATOR,
+        "ring": DEFAULT_RING_DIST_THRESHOLD,
+        "ring_operator": DEFAULT_THUMB_OPERATOR,
+        "pinky": DEFAULT_PINKY_DIST_THRESHOLD,
+        "pinky_operator": DEFAULT_THUMB_OPERATOR,
     }
     threshold_lock = threading.Lock()
     stop_event = threading.Event()
