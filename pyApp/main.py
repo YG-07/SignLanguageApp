@@ -464,7 +464,7 @@ def create_control_window(thresholds, threshold_lock, stop_event, messages):
     ring_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
     pinky_var = tk.StringVar(value=format_threshold(DEFAULT_PINKY_DIST_THRESHOLD))
     pinky_operator_var = tk.StringVar(value=DEFAULT_THUMB_OPERATOR)
-    status_var = tk.StringVar(value="调整数值后点击"确定"，识别窗口会立即使用新阈值。")
+    status_var = tk.StringVar(value='调整数值后点击"确定"，识别窗口会立即使用新阈值。')
     window_closed = {"value": False}
 
     # 4号点到0号点的距离（拇指）
