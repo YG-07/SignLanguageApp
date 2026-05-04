@@ -222,6 +222,14 @@ def draw_measurements(
     thumb_threshold,
     thumb_operator,
     finger_threshold,
+    index_threshold,
+    index_operator,
+    middle_threshold,
+    middle_operator,
+    ring_threshold,
+    ring_operator,
+    pinky_threshold,
+    pinky_operator,
 ):
     wrist = hand_landmarks.landmark[0]
     thumb_tip = hand_landmarks.landmark[4]
@@ -283,6 +291,46 @@ def draw_measurements(
             img,
             f"TIP: Try 4-0 distance = {thumb_dist:.3f}",
             (50, 310),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_index_distance(index_dist, index_operator, index_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 8-0 distance = {index_dist:.3f}",
+            (50, 335),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_middle_distance(middle_dist, middle_operator, middle_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 12-0 distance = {middle_dist:.3f}",
+            (50, 360),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_ring_distance(ring_dist, ring_operator, ring_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 16-0 distance = {ring_dist:.3f}",
+            (50, 385),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 0, 255),
+            1,
+        )
+    if not compare_pinky_distance(pinky_dist, pinky_operator, pinky_threshold):
+        cv2.putText(
+            img,
+            f"TIP: Try 20-0 distance = {pinky_dist:.3f}",
+            (50, 410),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.45,
             (0, 0, 255),
